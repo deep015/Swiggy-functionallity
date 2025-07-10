@@ -1,40 +1,29 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useParams } from "react-router-dom";
+import { MENU_API } from "../Utils/contact";
+import Shimmer from "./Shimmer";
+import useRestaurantMenu from "../Utils/useRestaurantMenu";
 
 function RestaurantMenu() {
-  const [resInfo, setResInfo] = useState(null);
+  const { resId } = useParams();
+  const resInfo = useRestaurantMenu(resId);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchMenu();
-  }, []);
-
-  const fetchMenu = async () => {
-    try {
-      const response = await fetch("https://www.swiggy.com/dapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=26.8923983&lng=81.0581042&restaurantId=59505&catalog_qa=undefined&submitAction=ENTER"); // Your backend proxy
-      const json = await response.json();
-      console.log(json);
-      setResInfo(json.data);
-      
-    } catch (err) {
-      console.error(err);
-      setError("Failed to fetch menu.");
-    }
-  };
-
   if (error) return <div>{error}</div>;
-  if (!resInfo) return <div>Loading menu...</div>;
+  if (!resInfo) return <Shimmer />;
 
   // Extract restaurant details
   const restaurantInfoCard = resInfo.cards.find(
     (card) => card?.card?.card?.info
   );
-  const { name, cuisines, cloudinaryImageId } = restaurantInfoCard.card.card.info;
+  const { name, cuisines, cloudinaryImageId } =
+    restaurantInfoCard.card.card.info;
 
   const imageUrl = cloudinaryImageId
     ? `https://media-assets.swiggy.com/swiggy/image/upload/${cloudinaryImageId}`
     : "";
 
-  // Extract all item category sections
+  // Extract menu categories
   const menuSectionCards = resInfo.cards
     .find((card) => card.groupedCard)
     ?.groupedCard?.cardGroupMap?.REGULAR?.cards
@@ -44,53 +33,55 @@ function RestaurantMenu() {
         "type.googleapis.com/swiggy.presentation.food.v2.ItemCategory"
     );
 
-    const offerCards=resInfo.cards.find((card)=>card.card?.card?.["@type"]===
-      "type.googleapis.com/swiggy.gandalf.widgets.v2.GridWidget");
+  // Extract offers
+  const offerCards = resInfo.cards.find(
+    (card) =>
+      card.card?.card?.["@type"] ===
+      "type.googleapis.com/swiggy.gandalf.widgets.v2.GridWidget"
+  );
+  const offers = offerCards?.card?.card?.gridElements?.infoWithStyle?.offers;
 
-      const offers = offerCards?.card?.card?.gridElements?.infoWithStyle?.offers;
-
-      
-     return (
-    <div style={{ padding: "20px", fontFamily: "sans-serif" }}>
+  return (
+    <div className="p-6 max-w-5xl mx-auto font-sans text-gray-800">
       {/* Restaurant Info */}
-      <div style={{ marginBottom: "30px" }}>
+      <div className="flex items-start gap-6 mb-8">
         {imageUrl && (
           <img
             src={imageUrl}
             alt={name}
-            style={{ width: "200px", borderRadius: "8px" }}
+            className="w-48 h-48 object-cover rounded-lg shadow"
           />
         )}
-        <h1>{name}</h1>
-        <p><strong>Cuisines:</strong> {cuisines.join(", ")}</p>
+        <div>
+          <h1 className="text-3xl font-bold mb-2">{name}</h1>
+          <p className="text-gray-600 text-sm">
+            <strong>Cuisines:</strong> {cuisines.join(", ")}
+          </p>
+        </div>
       </div>
 
       {/* Menu Sections */}
-      {menuSectionCards.map((section, index) => (
-        <div key={index} style={{ marginBottom: "30px" }}>
-          <h2 style={{ borderBottom: "1px solid #ccc" }}>{section.card.card.title}</h2>
-          <ul style={{ listStyleType: "none", padding: 0 }}>
+      {menuSectionCards?.map((section, index) => (
+        <div key={index} className="mb-10">
+          <h2 className="text-xl font-semibold border-b pb-1 mb-4">
+            {section.card.card.title}
+          </h2>
+          <ul className="divide-y">
             {section.card.card.itemCards.map((itemCard, idx) => {
               const item = itemCard.card.info;
               return (
                 <li
                   key={idx}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    padding: "10px 0",
-                    borderBottom: "1px solid #eee"
-                  }}
+                  className="py-4 flex justify-between items-start gap-4"
                 >
-                  <div>
-                    <h4 style={{ margin: "0 0 5px" }}>{item.name}</h4>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-lg mb-1">{item.name}</h4>
                     {item.description && (
-                      <p style={{ margin: "0 0 5px", fontSize: "0.9em", color: "#666" }}>
+                      <p className="text-sm text-gray-500 mb-1">
                         {item.description}
                       </p>
                     )}
-                    <p style={{ margin: 0 }}>
+                    <p className="text-sm font-semibold">
                       ₹{(item.price || item.defaultPrice) / 100}
                     </p>
                   </div>
@@ -98,7 +89,7 @@ function RestaurantMenu() {
                     <img
                       src={`https://media-assets.swiggy.com/swiggy/image/upload/${item.imageId}`}
                       alt={item.name}
-                      style={{ width: "90px", height: "90px", borderRadius: "8px", objectFit: "cover" }}
+                      className="w-24 h-24 object-cover rounded-md shadow"
                     />
                   )}
                 </li>
@@ -108,27 +99,32 @@ function RestaurantMenu() {
         </div>
       ))}
 
-    {/* Offers section */}
-    {Array.isArray(offers) && offers.length > 0 ? (
-      <div style={{ marginBottom: "30px" }}>
-        <h2>Available Offers</h2>
-        <ul style={{ paddingLeft: "20px" }}>
-          {offers.map((offerObj, index) => {
-            const info = offerObj?.info;
-            return (
-              <li key={index} style={{ marginBottom: "8px", color: "#444" }}>
-                {info?.header} - {info?.couponCode && `Use: ${info.couponCode}`}
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    ) : (
-      <p style={{ color: "#999" }}>No offers available.</p>
-    )}
-
+      {/* Offers Section */}
+      {Array.isArray(offers) && offers.length > 0 ? (
+        <div className="mb-10">
+          <h2 className="text-xl font-semibold mb-4">Available Offers</h2>
+          <ul className="list-disc pl-6 space-y-2 text-sm text-gray-700">
+            {offers.map((offerObj, index) => {
+              const info = offerObj?.info;
+              return (
+                <li key={index}>
+                  {info?.header}{" "}
+                  {info?.couponCode && (
+                    <span className="text-emerald-600 font-medium">
+                      (Use: {info.couponCode})
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : (
+        <p className="text-gray-400">No offers available.</p>
+      )}
     </div>
   );
 }
 
 export default RestaurantMenu;
+

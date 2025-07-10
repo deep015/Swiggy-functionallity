@@ -1,15 +1,12 @@
+@import "tailwindcss";
+
 .header {
     display: flex;
     justify-content: space-between;
     border: 1px solid black
 }
 
-.logo {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    background: #db0b0b;
-}
+
 
 .nav-items {
     padding: 0 3px;
