@@ -12,7 +12,7 @@ const ResturantCard = ({ resData }) => {
   } = resData.info;
 
   return (
-    <div className="w-64 bg-white rounded-xl shadow-md p-4 m-3 hover:shadow-lg hover:scale-105 transition-transform duration-300">
+    <div className="w-64 border-gray-300 border-1 bg-white rounded-xl shadow-md p-4 m-3 hover:shadow-lg hover:scale-105 transition-transform duration-300">
       <img
         className="w-full h-40 object-cover rounded-lg mb-3"
         src={CON_URL + cloudinaryImageId}
@@ -28,4 +28,6 @@ const ResturantCard = ({ resData }) => {
   );
 };
 
+
+ 
 export default ResturantCard;

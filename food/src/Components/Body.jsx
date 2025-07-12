@@ -1,5 +1,5 @@
 import { use, useEffect, useState } from "react";
-import ResturantCard from "./RestaurantCard";
+import ResturantCard  from "./RestaurantCard";
 import Shimmer from "./Shimmer";
 import { Link } from "react-router-dom";
 import useOnlineStatus from "../Utils/useOnlineStatus";
@@ -19,7 +19,7 @@ const Body = () => {
         "https://www.swiggy.com/dapi/restaurants/list/v5?lat=26.8923983&lng=81.0581042&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING"
       );
       const json = await data.json();
-
+      console.log(json);
       const restaurantCard = json?.data?.cards?.find(
         (card) =>
           card?.card?.card?.gridElements?.infoWithStyle?.restaurants
@@ -97,6 +97,7 @@ return (
           key={restaurant.info.id}
           to={"/restaurants/" + restaurant.info.id}
         >
+          {/** if the resturant promoted showed the promoted label */}
           <ResturantCard resData={restaurant} />
         </Link>
       ))}
