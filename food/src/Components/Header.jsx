@@ -1,9 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import useOnlineStatus from "../Utils/useOnlineStatus";
+import UserContext from "../Utils/UserContext";
 
 const Header = () => {
   const [btnNameReact, setBtnNameReact] = useState("Login");
+  const {loggedInUser} =useContext(UserContext);
+  console.log(loggedInUser);
 
   useEffect(() => {
     console.log("Header component mounted");
@@ -62,6 +65,7 @@ const Header = () => {
               {btnNameReact}
             </button>
           </li>
+          <li className="hover:text-emerald-600 transition px-4 font-bold">{loggedInUser}</li>
         </ul>
       </nav>
     </header>

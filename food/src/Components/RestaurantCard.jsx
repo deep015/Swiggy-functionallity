@@ -1,8 +1,12 @@
+import { useContext } from "react";
 import CON_URL from "../Utils/contact";
+import UserContext from "../Utils/UserContext";
 
 const ResturantCard = ({ resData }) => {
   if (!resData?.info) return null;
 
+  const {loggedInUser} = useContext(UserContext);  
+  
   const {
     name = "Restaurant Name",
     cloudinaryImageId = "",
@@ -24,6 +28,7 @@ const ResturantCard = ({ resData }) => {
       <h4 className="text-sm text-gray-600 mt-1">
         {sla.deliveryTime ?? "N/A"} minutes
       </h4>
+      <h4 className="text-sm text-gray-600 mt-1"> User: {loggedInUser}</h4>
     </div>
   );
 };
